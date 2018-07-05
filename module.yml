@@ -1,0 +1,572 @@
+---
+# Copyright 2018 widdix GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'cfn-modules: AWS EC2 instance (Amazon Linux 2)'
+# cfn-modules:implements(ExposeSecurityGroupId)
+Parameters:
+  VpcModule:
+    Description: 'Stack name of vpc module.'
+    Type: String
+  AlertingModule:
+    Description: 'Optional but recommended stack name of alerting module.'
+    Type: String
+    Default: ''
+  BastionModule:
+    Description: 'Optional but recommended stack name of module implementing Bastion.'
+    Type: String
+    Default: ''
+  HostedZoneModule:
+    Description: 'Optional stack name of module implementing HostedZone.'
+    Type: String
+    Default: ''
+  KeyName:
+    Description: 'Optional key name of the Linux user ec2-user to establish a SSH connection to the EC2 instance.'
+    Type: String
+    Default: ''
+  IAMUserSSHAccess:
+    Description: 'Synchronize public keys of IAM users to enable personalized SSH access (https://github.com/widdix/aws-ec2-ssh)?'
+    Type: String
+    Default: false
+    AllowedValues: [true, false]
+  SystemsManagerAccess:
+    Description: 'Enable AWS Systems Manager agent and authorization.'
+    Type: String
+    Default: true
+    AllowedValues: [true, false]
+  InstanceType:
+    Description: 'The instance type for the EC2 instance.'
+    Type: String
+    Default: 't2.micro'
+  Name:
+    Description: 'The name for the EC2 instance.'
+    Type: String
+    Default: 'test'
+  SubnetAZChar:
+    Description: 'Subnet availability zone char.'
+    Type: String
+    Default: A
+    AllowedValues: [A, B, C]
+  SubnetReach:
+    Description: 'Subnet reach.'
+    Type: String
+    Default: Public
+    AllowedValues:
+    - Public
+    - Private
+  LogGroupRetentionInDays:
+    Description: 'Specifies the number of days you want to retain log events.'
+    Type: Number
+    Default: 14
+    AllowedValues: [1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653]
+  SubDomainNameWithDot:
+    Description: 'Name that is used to create the DNS entry with trailing dot, e.g. ${SubDomainNameWithDot}${HostedZoneName}. Leave blank for naked (or apex and bare) domain. Requires HostedZoneModule parameter!'
+    Type: String
+    Default: 'test.'
+  UserData:
+    Description: 'Optional Bash script executed on first instance launch.'
+    Type: String
+    Default: ''
+  IngressTcpPort1:
+    Description: 'Optional port allowing ingress TCP traffic.'
+    Type: String
+    Default: ''
+  IngressTcpPort2:
+    Description: 'Optional port allowing ingress TCP traffic.'
+    Type: String
+    Default: ''
+  IngressTcpPort3:
+    Description: 'Optional port allowing ingress TCP traffic.'
+    Type: String
+    Default: ''
+  ClientSgModule1:
+    Description: 'Optional stack name of client-sg module to mark traffic from EC2 instance.'
+    Type: String
+    Default: ''
+  ClientSgModule2:
+    Description: 'Optional stack name of client-sg module to mark traffic from EC2 instance.'
+    Type: String
+    Default: ''
+  ClientSgModule3:
+    Description: 'Optional stack name of client-sg module to mark traffic from EC2 instance.'
+    Type: String
+    Default: ''
+  FileSystemModule1:
+    Description: 'Optional stack name of efs-file-system module.'
+    Type: String
+    Default: ''
+  VolumeModule1:
+    Description: 'Optional stack name of ebs-volume module.'
+    Type: String
+    Default: ''
+Mappings:
+  RegionMap:
+    'ap-south-1':
+      AMI: 'ami-d783a9b8'
+    'eu-west-3':
+      AMI: 'ami-2cf54551'
+    'eu-west-2':
+      AMI: 'ami-b8b45ddf'
+    'eu-west-1':
+      AMI: 'ami-466768ac'
+    'ap-northeast-2':
+      AMI: 'ami-afd86dc1'
+    'ap-northeast-1':
+      AMI: 'ami-e99f4896'
+    'sa-east-1':
+      AMI: 'ami-6dca9001'
+    'ca-central-1':
+      AMI: 'ami-0ee86a6a'
+    'ap-southeast-1':
+      AMI: 'ami-05868579'
+    'ap-southeast-2':
+      AMI: 'ami-39f8215b'
+    'eu-central-1':
+      AMI: 'ami-7c4f7097'
+    'us-east-1':
+      AMI: 'ami-b70554c8'
+    'us-east-2':
+      AMI: 'ami-8c122be9'
+    'us-west-1':
+      AMI: 'ami-e0ba5c83'
+    'us-west-2':
+      AMI: 'ami-a9d09ed1'
+Conditions:
+  HasAlertingModule: !Not [!Equals [!Ref AlertingModule, '']]
+  HasBastionModule: !Not [!Equals [!Ref BastionModule, '']]
+  HasNotBastionModule: !Not [!Condition HasBastionModule]
+  HasHostedZoneModule: !Not [!Equals [!Ref HostedZoneModule, '']]
+  HasFileSystemModule1: !Not [!Equals [!Ref FileSystemModule1, '']]
+  HasVolumeModule1: !Not [!Equals [!Ref VolumeModule1, '']]
+  HasKeyName: !Not [!Equals [!Ref KeyName, '']]
+  HasIAMUserSSHAccess: !Equals [!Ref IAMUserSSHAccess, 'true']
+  HasSystemsManagerAccess: !Equals [!Ref SystemsManagerAccess, 'true']
+  HasSubnetReachPublic: !Equals [!Ref SubnetReach, Public]
+  HasSubnetReachPrivate: !Equals [!Ref SubnetReach, Private]
+  HasIngressTcpPort1: !Not [!Equals [!Ref IngressTcpPort1, '']]
+  HasIngressTcpPort2: !Not [!Equals [!Ref IngressTcpPort2, '']]
+  HasIngressTcpPort3: !Not [!Equals [!Ref IngressTcpPort3, '']]
+  HasHostedZoneModuleAndSubnetReachPublic: !And [!Condition HasHostedZoneModule, !Condition HasSubnetReachPublic]
+  HasHostedZoneModuleAndSubnetReachPrivate: !And [!Condition HasHostedZoneModule, !Condition HasSubnetReachPrivate]
+  HasClientSgModule1: !Not [!Equals [!Ref ClientSgModule1, '']]
+  HasClientSgModule2: !Not [!Equals [!Ref ClientSgModule2, '']]
+  HasClientSgModule3: !Not [!Equals [!Ref ClientSgModule3, '']]
+Resources:
+  RecordSetPublicIpAddress:
+    Condition: HasHostedZoneModuleAndSubnetReachPublic
+    Type: 'AWS::Route53::RecordSet'
+    Properties:
+      HostedZoneId:
+        'Fn::ImportValue': !Sub '${HostedZoneModule}-Id'
+      Name: !Sub
+      - '${SubDomainNameWithDot}${HostedZoneName}'
+      - SubDomainNameWithDot: !Ref SubDomainNameWithDot
+        HostedZoneName:
+          'Fn::ImportValue': !Sub '${HostedZoneModule}-Name'
+      ResourceRecords:
+      - !Ref ElasticIP
+      TTL: '60'
+      Type: A
+  RecordSetPrivateIpAddress:
+    Condition: HasHostedZoneModuleAndSubnetReachPrivate
+    Type: 'AWS::Route53::RecordSet'
+    Properties:
+      HostedZoneId:
+        'Fn::ImportValue': !Sub '${HostedZoneModule}-Id'
+      Name: !Sub
+      - '${SubDomainNameWithDot}${HostedZoneName}'
+      - SubDomainNameWithDot: !Ref SubDomainNameWithDot
+        HostedZoneName:
+          'Fn::ImportValue': !Sub '${HostedZoneModule}-Name'
+      ResourceRecords:
+      - !GetAtt 'Instance.PrivateIp'
+      TTL: '60'
+      Type: A
+  LogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      RetentionInDays: !Ref LogGroupRetentionInDays
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Ref Name
+      VpcId:
+        'Fn::ImportValue': !Sub '${VpcModule}-Id'
+  SecurityGroupIngressSSHBastion:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Condition: HasBastionModule
+    Properties:
+      GroupId: !Ref SecurityGroup
+      IpProtocol: tcp
+      FromPort: 22
+      ToPort: 22
+      SourceSecurityGroupId:
+        'Fn::ImportValue': !Sub '${BastionModule}-SecurityGroupId'
+  SecurityGroupIngressSSHWorld:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Condition: HasNotBastionModule
+    Properties:
+      GroupId: !Ref SecurityGroup
+      IpProtocol: tcp
+      FromPort: 22
+      ToPort: 22
+      CidrIp: '0.0.0.0/0'
+  SecurityGroupIngressTcpPort1:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Condition: HasIngressTcpPort1
+    Properties:
+      GroupId: !Ref SecurityGroup
+      IpProtocol: tcp
+      FromPort: !Ref IngressTcpPort1
+      ToPort: !Ref IngressTcpPort1
+      CidrIp: '0.0.0.0/0'
+  SecurityGroupIngressTcpPort2:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Condition: HasIngressTcpPort2
+    Properties:
+      GroupId: !Ref SecurityGroup
+      IpProtocol: tcp
+      FromPort: !Ref IngressTcpPort2
+      ToPort: !Ref IngressTcpPort2
+      CidrIp: '0.0.0.0/0'
+  SecurityGroupIngressTcpPort3:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Condition: HasIngressTcpPort3
+    Properties:
+      GroupId: !Ref SecurityGroup
+      IpProtocol: tcp
+      FromPort: !Ref IngressTcpPort3
+      ToPort: !Ref IngressTcpPort3
+      CidrIp: '0.0.0.0/0'
+  InstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Roles:
+      - !Ref Role
+  Role:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: 'ec2.amazonaws.com'
+          Action: 'sts:AssumeRole'
+      ManagedPolicyArns: !If [HasSystemsManagerAccess, ['arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM'], []]
+      Policies:
+      - PolicyName: logs
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - 'logs:CreateLogStream'
+            - 'logs:PutLogEvents'
+            - 'logs:DescribeLogStreams'
+            Resource: '*'
+  PolicySshAccess:
+    Type: 'AWS::IAM::Policy'
+    Condition: HasIAMUserSSHAccess
+    Properties:
+      Roles:
+      - !Ref Role
+      PolicyName: 'ssh-access'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - 'iam:ListUsers'
+          - 'iam:GetGroup'
+          Resource: '*'
+        - Effect: Allow
+          Action:
+          - 'iam:ListSSHPublicKeys'
+          - 'iam:GetSSHPublicKey'
+          Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:user/*'
+        - Effect: Allow
+          Action: 'ec2:DescribeTags'
+          Resource: '*'
+  ElasticIP:
+    Condition: HasSubnetReachPublic
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      Domain: vpc
+  NetworkInterface:
+    Type: 'AWS::EC2::NetworkInterface'
+    Properties:
+      GroupSet:
+      - !Ref SecurityGroup
+      - !If [HasClientSgModule1, {'Fn::ImportValue': !Sub '${ClientSgModule1}-SecurityGroupId'}, !Ref 'AWS::NoValue']
+      - !If [HasClientSgModule2, {'Fn::ImportValue': !Sub '${ClientSgModule2}-SecurityGroupId'}, !Ref 'AWS::NoValue']
+      - !If [HasClientSgModule3, {'Fn::ImportValue': !Sub '${ClientSgModule3}-SecurityGroupId'}, !Ref 'AWS::NoValue']
+      SubnetId:
+        'Fn::ImportValue': !Sub '${VpcModule}-SubnetId${SubnetAZChar}${SubnetReach}'
+  EIPAssociation:
+    Condition: HasSubnetReachPublic
+    Type: 'AWS::EC2::EIPAssociation'
+    Properties:
+      AllocationId: !GetAtt 'ElasticIP.AllocationId'
+      NetworkInterfaceId: !Ref NetworkInterface
+  Instance:
+    # DependsOn: EIPAssociation # TODO does not work when reach is Private. Unfortunately, we can not use !If in DependsOn...
+    Type: 'AWS::EC2::Instance'
+    Metadata:
+      'AWS::CloudFormation::Init':
+        configSets:
+          default: !If [HasIAMUserSSHAccess, [awslogs, ssh-access, config], [awslogs, config]]
+        awslogs:
+          packages:
+            yum:
+              awslogs: []
+          files:
+            '/etc/awslogs/awscli.conf':
+              content: !Sub |
+                [default]
+                region = ${AWS::Region}
+                [plugins]
+                cwlogs = cwlogs
+              mode: '000644'
+              owner: root
+              group: root
+            '/etc/awslogs/awslogs.conf':
+              content: !Sub |
+                [general]
+                state_file = /var/lib/awslogs/agent-state
+                [/var/log/amazon/ssm/amazon-ssm-agent.log]
+                datetime_format = %Y-%m-%d %H:%M:%S
+                file = /var/log/amazon/ssm/amazon-ssm-agent.log
+                log_stream_name = {instance_id}/var/log/amazon/ssm/amazon-ssm-agent.log
+                log_group_name = ${LogGroup}
+                [/var/log/amazon/ssm/errors.log]
+                datetime_format = %Y-%m-%d %H:%M:%S
+                file = /var/log/amazon/ssm/errors.log
+                log_stream_name = {instance_id}/var/log/amazon/ssm/errors.log
+                log_group_name = ${LogGroup}
+                [/var/log/audit/audit.log]
+                file = /var/log/audit/audit.log
+                log_stream_name = {instance_id}/var/log/audit/audit.log
+                log_group_name = ${LogGroup}
+                [/var/log/awslogs.log]
+                datetime_format = %Y-%m-%d %H:%M:%S
+                file = /var/log/awslogs.log
+                log_stream_name = {instance_id}/var/log/awslogs.log
+                log_group_name = ${LogGroup}
+                [/var/log/boot.log]
+                file = /var/log/boot.log
+                log_stream_name = {instance_id}/var/log/boot.log
+                log_group_name = ${LogGroup}
+                [/var/log/cfn-hup.log]
+                datetime_format = %Y-%m-%d %H:%M:%S
+                file = /var/log/cfn-hup.log
+                log_stream_name = {instance_id}/var/log/cfn-hup.log
+                log_group_name = ${LogGroup}
+                [/var/log/cfn-init-cmd.log]
+                datetime_format = %Y-%m-%d %H:%M:%S
+                file = /var/log/cfn-init-cmd.log
+                log_stream_name = {instance_id}/var/log/cfn-init-cmd.log
+                log_group_name = ${LogGroup}
+                [/var/log/cfn-init.log]
+                datetime_format = %Y-%m-%d %H:%M:%S
+                file = /var/log/cfn-init.log
+                log_stream_name = {instance_id}/var/log/cfn-init.log
+                log_group_name = ${LogGroup}
+                [/var/log/cfn-wire.log]
+                datetime_format = %Y-%m-%d %H:%M:%S
+                file = /var/log/cfn-wire.log
+                log_stream_name = {instance_id}/var/log/cfn-wire.log
+                log_group_name = ${LogGroup}
+                [/var/log/cloud-init-output.log]
+                file = /var/log/cloud-init-output.log
+                log_stream_name = {instance_id}/var/log/cloud-init-output.log
+                log_group_name = ${LogGroup}
+                [/var/log/cloud-init.log]
+                datetime_format = %b %d %H:%M:%S
+                file = /var/log/cloud-init.log
+                log_stream_name = {instance_id}/var/log/cloud-init.log
+                log_group_name = ${LogGroup}
+                [/var/log/cron]
+                datetime_format = %b %d %H:%M:%S
+                file = /var/log/cron
+                log_stream_name = {instance_id}/var/log/cron
+                log_group_name = ${LogGroup}
+                [/var/log/dmesg]
+                file = /var/log/dmesg
+                log_stream_name = {instance_id}/var/log/dmesg
+                log_group_name = ${LogGroup}
+                [/var/log/grubby_prune_debug]
+                file = /var/log/grubby_prune_debug
+                log_stream_name = {instance_id}/var/log/grubby_prune_debug
+                log_group_name = ${LogGroup}
+                [/var/log/maillog]
+                datetime_format = %b %d %H:%M:%S
+                file = /var/log/maillog
+                log_stream_name = {instance_id}/var/log/maillog
+                log_group_name = ${LogGroup}
+                [/var/log/messages]
+                datetime_format = %b %d %H:%M:%S
+                file = /var/log/messages
+                log_stream_name = {instance_id}/var/log/messages
+                log_group_name = ${LogGroup}
+                [/var/log/secure]
+                datetime_format = %b %d %H:%M:%S
+                file = /var/log/secure
+                log_stream_name = {instance_id}/var/log/secure
+                log_group_name = ${LogGroup}
+                [/var/log/yum.log]
+                datetime_format = %b %d %H:%M:%S
+                file = /var/log/yum.log
+                log_stream_name = {instance_id}/var/log/yum.log
+                log_group_name = ${LogGroup}
+              mode: '000644'
+              owner: root
+              group: root
+          services:
+            sysvinit:
+              awslogs:
+                enabled: true
+                ensureRunning: true
+                packages:
+                  yum:
+                  - awslogsd
+                files:
+                - '/etc/awslogs/awslogs.conf'
+                - '/etc/awslogs/awscli.conf'
+        ssh-access:
+          packages:
+            rpm:
+              aws-ec2-ssh: 'https://s3-eu-west-1.amazonaws.com/widdix-aws-ec2-ssh-releases-eu-west-1/aws-ec2-ssh-1.8.0-1.el7.centos.noarch.rpm'
+          commands:
+            a_configure_sudo:
+              command: 'sed -i ''s/SUDOERS_GROUPS=""/SUDOERS_GROUPS="##ALL##"/g'' /etc/aws-ec2-ssh.conf'
+              test: 'grep -q ''SUDOERS_GROUPS=""'' /etc/aws-ec2-ssh.conf'
+            b_enable:
+              command: 'sed -i ''s/DONOTSYNC=1/DONOTSYNC=0/g'' /etc/aws-ec2-ssh.conf && /usr/bin/import_users.sh'
+              test: 'grep -q ''DONOTSYNC=1'' /etc/aws-ec2-ssh.conf'
+        config:
+          files:
+            '/etc/cfn/cfn-hup.conf':
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+                interval=1
+              mode: '000400'
+              owner: root
+              group: root
+            '/etc/cfn/hooks.d/cfn-auto-reloader.conf':
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.Instance.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init --verbose --stack=${AWS::StackName} --region=${AWS::Region} --resource=Instance
+                runas=root
+          services:
+            sysvinit:
+              cfn-hup:
+                enabled: true
+                ensureRunning: true
+                files:
+                - '/etc/cfn/cfn-hup.conf'
+                - '/etc/cfn/hooks.d/cfn-auto-reloader.conf'
+              amazon-ssm-agent:
+                enabled: !If [HasSystemsManagerAccess, true, false]
+                ensureRunning: !If [HasSystemsManagerAccess, true, false]
+    Properties:
+      IamInstanceProfile: !Ref InstanceProfile
+      ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', AMI]
+      InstanceType: !Ref InstanceType
+      KeyName: !If [HasKeyName, !Ref KeyName, !Ref 'AWS::NoValue']
+      NetworkInterfaces:
+      - DeviceIndex: '0'
+        NetworkInterfaceId: !Ref NetworkInterface
+      UserData:
+        'Fn::Base64': !Sub
+        - |
+            #!/bin/bash -ex
+            trap '/opt/aws/bin/cfn-signal -e 1 --region ${Region} --stack ${StackName} --resource Instance' ERR
+            ${UserDataMountFileSystem1}
+            ${UserDataMountVolume1}
+            mount -a
+            /opt/aws/bin/cfn-init -v --region ${Region} --stack ${StackName} --resource Instance
+            ${UserData}
+            /opt/aws/bin/cfn-signal -e 0 --region ${Region} --stack ${StackName} --resource Instance
+        - Region: !Ref 'AWS::Region'
+          StackName: !Ref 'AWS::StackName'
+          UserDataMountFileSystem1: !If [HasFileSystemModule1, !Join ['', ['yum install -y amazon-efs-utils && mkdir -p /mnt/efs1 && echo "', {'Fn::ImportValue': !Sub '${FileSystemModule1}-Id'}, ':/ /mnt/efs1 efs defaults,_netdev 0 0" >> /etc/fstab']], '']
+          UserDataMountVolume1: !If [HasVolumeModule1, '', ''] # TODO this is tricky because we might need to format the volume first
+          UserData: !Ref UserData
+      Tags:
+      - Key: Name
+        Value: !Ref Name
+      Volumes:
+      - !If [HasVolumeModule1, {Device: xvdh, VolumeId: {'Fn::ImportValue': !Sub '${VolumeModule1}-Id'}}, !Ref 'AWS::NoValue']
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT10M
+  RecoveryAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmDescription: 'Recovering instance when underlying hardware fails.'
+      Namespace: 'AWS/EC2'
+      MetricName: StatusCheckFailed_System
+      Statistic: Minimum
+      Period: 60
+      EvaluationPeriods: 5
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 0
+      AlarmActions:
+      - !Sub 'arn:aws:automate:${AWS::Region}:ec2:recover'
+      Dimensions:
+      - Name: InstanceId
+        Value: !Ref Instance
+  CPUTooHighAlarm:
+    Condition: HasAlertingModule
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmDescription: 'Average CPU utilization over last 10 minutes higher than 80%'
+      Namespace: 'AWS/EC2'
+      MetricName: CPUUtilization
+      Statistic: Average
+      Period: 600
+      EvaluationPeriods: 1
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 80
+      AlarmActions:
+      - 'Fn::ImportValue': !Sub '${AlertingModule}-Arn'
+      Dimensions:
+      - Name: InstanceId
+        Value: !Ref Instance
+Outputs:
+  ModuleId:
+    Value: 'ec2-instance-amazon-linux2'
+  ModuleVersion:
+    Value: '0.0.1'
+  StackName:
+    Value: !Ref 'AWS::StackName'
+  SecurityGroupId:
+    Value: !Ref SecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-SecurityGroupId'
+  PublicIpAddress:
+    Condition: HasSubnetReachPublic
+    Value: !Ref ElasticIP
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicIpAddress'
+  PrivateIpAddress:
+    Value: !GetAtt 'NetworkInterface.PrimaryPrivateIpAddress'
+    Export:
+      Name: !Sub '${AWS::StackName}-PrivateIpAddress'

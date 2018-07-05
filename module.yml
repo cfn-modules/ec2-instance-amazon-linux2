@@ -14,7 +14,7 @@
 # limitations under the License.
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'cfn-modules: AWS EC2 instance (Amazon Linux 2)'
-# cfn-modules:implements(ExposeSecurityGroupId)
+# cfn-modules:implements(ExposeId, ExposeSecurityGroupId)
 Parameters:
   VpcModule:
     Description: 'Stack name of vpc module.'
@@ -554,9 +554,13 @@ Outputs:
   ModuleId:
     Value: 'ec2-instance-amazon-linux2'
   ModuleVersion:
-    Value: '0.0.2'
+    Value: '0.0.3'
   StackName:
     Value: !Ref 'AWS::StackName'
+  Id:
+    Value: !Ref Instance
+    Export:
+      Name: !Sub '${AWS::StackName}-Id'
   SecurityGroupId:
     Value: !Ref SecurityGroup
     Export:

@@ -27,6 +27,7 @@ Resources:
         HostedZoneModule: !GetAtt 'HostedZone.Outputs.StackName' # optional
         KeyName: '' # optional
         IAMUserSSHAccess: false # optional
+        SystemsManagerAccess: true # optional
         InstanceType: 't2.micro' # optional
         Name: 'test' # optional
         SubnetAZChar: 'A' # optional
@@ -97,6 +98,13 @@ Resources:
       <td>IAMUserSSHAccess</td>
       <td>Synchronize public keys of IAM users to enable personalized SSH access (https://github.com/widdix/aws-ec2-ssh)?</td>
       <td>false</td>
+      <td>no</td>
+      <td>[true, false]</td>
+    </tr>
+    <tr>
+      <td>SystemsManagerAccess</td>
+      <td>Enable AWS Systems Manager agent and authorization</td>
+      <td>true</td>
       <td>no</td>
       <td>[true, false]</td>
     </tr>

@@ -110,38 +110,46 @@ Parameters:
     Description: 'Optional stack name of ebs-volume module.'
     Type: String
     Default: ''
+  AmazonLinux2Version:
+    Description: 'Optional version of Amazon Linux 2.'
+    Type: String
+    Default: '2.0.20180622.1'
+    AllowedValues: ['2.0.20180622.1']
 Mappings:
-  RegionMap:
+  VersionMap:
+    '2.0.20180622.1':
+      Map: RegionMap20201806221
+  RegionMap20201806221:
     'ap-south-1':
-      AMI: 'ami-d783a9b8'
+      ImageId: 'ami-d783a9b8'
     'eu-west-3':
-      AMI: 'ami-2cf54551'
+      ImageId: 'ami-2cf54551'
     'eu-west-2':
-      AMI: 'ami-b8b45ddf'
+      ImageId: 'ami-b8b45ddf'
     'eu-west-1':
-      AMI: 'ami-466768ac'
+      ImageId: 'ami-466768ac'
     'ap-northeast-2':
-      AMI: 'ami-afd86dc1'
+      ImageId: 'ami-afd86dc1'
     'ap-northeast-1':
-      AMI: 'ami-e99f4896'
+      ImageId: 'ami-e99f4896'
     'sa-east-1':
-      AMI: 'ami-6dca9001'
+      ImageId: 'ami-6dca9001'
     'ca-central-1':
-      AMI: 'ami-0ee86a6a'
+      ImageId: 'ami-0ee86a6a'
     'ap-southeast-1':
-      AMI: 'ami-05868579'
+      ImageId: 'ami-05868579'
     'ap-southeast-2':
-      AMI: 'ami-39f8215b'
+      ImageId: 'ami-39f8215b'
     'eu-central-1':
-      AMI: 'ami-7c4f7097'
+      ImageId: 'ami-7c4f7097'
     'us-east-1':
-      AMI: 'ami-b70554c8'
+      ImageId: 'ami-b70554c8'
     'us-east-2':
-      AMI: 'ami-8c122be9'
+      ImageId: 'ami-8c122be9'
     'us-west-1':
-      AMI: 'ami-e0ba5c83'
+      ImageId: 'ami-e0ba5c83'
     'us-west-2':
-      AMI: 'ami-a9d09ed1'
+      ImageId: 'ami-a9d09ed1'
 Conditions:
   HasAlertingModule: !Not [!Equals [!Ref AlertingModule, '']]
   HasBastionModule: !Not [!Equals [!Ref BastionModule, '']]
@@ -486,7 +494,7 @@ Resources:
                 ensureRunning: !If [HasSystemsManagerAccess, true, false]
     Properties:
       IamInstanceProfile: !Ref InstanceProfile
-      ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', AMI]
+      ImageId: !FindInMap [!FindInMap [VersionMap, !Ref AmazonLinux2Version, Map], !Ref 'AWS::Region', ImageId]
       InstanceType: !Ref InstanceType
       KeyName: !If [HasKeyName, !Ref KeyName, !Ref 'AWS::NoValue']
       NetworkInterfaces:
@@ -554,7 +562,7 @@ Outputs:
   ModuleId:
     Value: 'ec2-instance-amazon-linux2'
   ModuleVersion:
-    Value: '0.0.4'
+    Value: '0.0.5'
   StackName:
     Value: !Ref 'AWS::StackName'
   Id:

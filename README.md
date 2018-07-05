@@ -1,6 +1,6 @@
 # cfn-modules: AWS EC2 instance (Amazon Linux 2)
 
-AWS EC2 instance based on Amazon Linux 2 with a fixed public IP address (Elastic IP), auto recovery, [alerting](https://www.npmjs.com/package/@cfn-modules/alerting), [IAM user SSH access](https://github.com/widdix/aws-ec2-ssh).
+AWS EC2 instance based on Amazon Linux 2 with a fixed public IP address (Elastic IP), auto recovery, [alerting](https://www.npmjs.com/package/@cfn-modules/alerting), [IAM user SSH access](https://github.com/widdix/aws-ec2-ssh), following an mutable infrastructure approach (this is a pet).
 
 ## Install
 
@@ -43,6 +43,7 @@ Resources:
         ClientSgModule3: '' # optional
         FileSystemModule1: '' # optional
         VolumeModule1: '' # optional
+        AmazonLinux2Version: '2.0.20180622.1' # optional
       TemplateURL: './node_modules/@cfn-modules/ec2-instance-amazon-linux2/module.yml'
 ```
 
@@ -212,6 +213,13 @@ Resources:
       <td></td>
       <td>no</td>
       <td></td>
+    </tr>
+    <tr>
+      <td>AmazonLinux2Version</td>
+      <td>Version of Amazon Linux 2</td>
+      <td>2.0.20180622.1</td>
+      <td>no</td>
+      <td>['2.0.20180622.1']</td>
     </tr>
   </tbody>
 </table>

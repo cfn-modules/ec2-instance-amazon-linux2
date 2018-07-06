@@ -30,7 +30,7 @@ Resources:
         SystemsManagerAccess: true # optional
         InstanceType: 't2.micro' # optional
         Name: 'test' # optional
-        SubnetAZChar: 'A' # optional
+        AZChar: 'A' # optional
         SubnetReach: 'Public' # optional
         LogGroupRetentionInDays: 14 # optional
         SubDomainNameWithDot: 'test.' # optional
@@ -124,8 +124,8 @@ Resources:
       <td></td>
     </tr>
     <tr>
-      <td>SubnetAZChar</td>
-      <td>Subnet availability zone char</td>
+      <td>AZChar</td>
+      <td>Availability zone char</td>
       <td>A</td>
       <td>no</td>
       <td>[A, B, C]</td>

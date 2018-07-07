@@ -223,3 +223,10 @@ Resources:
     </tr>
   </tbody>
 </table>
+
+## Limitations
+
+* Highly available: EC2 instances only live in a single AZ by design
+* Scalable: EC2 instances capacity (CPU, RAM, network, ...) is limited by design
+* Secure: Root volume is not encrypted at-rest (not possible unless the AMI is encrypted)
+* Secure: Backups are not enabled

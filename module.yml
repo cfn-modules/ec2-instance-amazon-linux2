@@ -32,7 +32,7 @@ Parameters:
     Type: String
     Default: ''
   KeyName:
-    Description: 'Optional key name of the Linux user ec2-user to establish a SSH connection to the EC2 instance.'
+    Description: 'Optional key name of the Linux user ec2-user to establish a SSH connection to the EC2 instance (update requires replacement of root volume = data loss!).'
     Type: String
     Default: ''
   IAMUserSSHAccess:
@@ -54,17 +54,17 @@ Parameters:
     Type: String
     Default: 'test'
   AZChar:
-    Description: 'Availability zone char.'
+    Description: 'Availability zone char (update requires replacement of root volume = data loss!).'
     Type: String
     Default: A
     AllowedValues: [A, B, C]
   SubnetReach:
-    Description: 'Subnet reach.'
+    Description: 'Subnet reach (update requires replacement of root volume = data loss!).'
     Type: String
     Default: Public
     AllowedValues:
     - Public
-    - Private
+    # - Private TODO DependsOn: EIPAssociation does not work when reach is Private. Unfortunately, we can not use !If in DependsOn...
   LogGroupRetentionInDays:
     Description: 'Specifies the number of days you want to retain log events.'
     Type: Number
@@ -103,15 +103,15 @@ Parameters:
     Type: String
     Default: ''
   FileSystemModule1:
-    Description: 'Optional stack name of efs-file-system module.'
+    Description: 'Optional stack name of efs-file-system module (update is not supported).'
     Type: String
     Default: ''
   VolumeModule1:
-    Description: 'Optional stack name of ebs-volume module.'
+    Description: 'Optional stack name of ebs-volume module (update is not supported).'
     Type: String
     Default: ''
   AmazonLinux2Version:
-    Description: 'Optional version of Amazon Linux 2.'
+    Description: 'Optional version of Amazon Linux 2 (update requires replacement of root volume = data loss!).'
     Type: String
     Default: '2.0.20180622.1'
     AllowedValues: ['2.0.20180622.1']
@@ -329,7 +329,7 @@ Resources:
       AllocationId: !GetAtt 'ElasticIP.AllocationId'
       NetworkInterfaceId: !Ref NetworkInterface
   Instance:
-    # DependsOn: EIPAssociation # TODO does not work when reach is Private. Unfortunately, we can not use !If in DependsOn...
+    DependsOn: EIPAssociation # does not work when reach is Private. Unfortunately, we can not use !If in DependsOn...
     Type: 'AWS::EC2::Instance'
     Metadata:
       'AWS::CloudFormation::Init':
@@ -562,7 +562,7 @@ Outputs:
   ModuleId:
     Value: 'ec2-instance-amazon-linux2'
   ModuleVersion:
-    Value: '0.0.6'
+    Value: '0.0.7'
   StackName:
     Value: !Ref 'AWS::StackName'
   Id:

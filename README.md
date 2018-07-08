@@ -1,6 +1,6 @@
 # cfn-modules: AWS EC2 instance (Amazon Linux 2)
 
-AWS EC2 instance based on Amazon Linux 2 with a fixed public IP address (Elastic IP), auto recovery, [alerting](https://www.npmjs.com/package/@cfn-modules/alerting), [IAM user SSH access](https://github.com/widdix/aws-ec2-ssh), following an mutable infrastructure approach (this is a pet).
+AWS EC2 instance based on Amazon Linux 2 with a fixed public IP address (Elastic IP), [auto recovery](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-recover.html), [alerting](https://www.npmjs.com/package/@cfn-modules/alerting), [IAM user SSH access](https://github.com/widdix/aws-ec2-ssh), following an mutable infrastructure approach (root volume is reused in case of auto recovery).
 
 ## Install
 
@@ -90,7 +90,7 @@ Resources:
     </tr>
     <tr>
       <td>KeyName</td>
-      <td>Key name of the Linux user ec2-user to establish a SSH connection to the EC2 instance</td>
+      <td>Key name of the Linux user ec2-user to establish a SSH connection to the EC2 instance (update requires replacement of root volume = data loss!)</td>
       <td></td>
       <td>no</td>
       <td></td>
@@ -125,14 +125,14 @@ Resources:
     </tr>
     <tr>
       <td>AZChar</td>
-      <td>Availability zone char</td>
+      <td>Availability zone char (update requires replacement of root volume = data loss!)</td>
       <td>A</td>
       <td>no</td>
       <td>[A, B, C]</td>
     </tr>
     <tr>
       <td>SubnetReach</td>
-      <td>Subnet reach</td>
+      <td>Subnet reach (update requires replacement of root volume = data loss!)</td>
       <td>Public</td>
       <td>no</td>
       <td>[Public, Private]</td>
@@ -202,21 +202,21 @@ Resources:
     </tr>
     <tr>
       <td>FileSystemModule1</td>
-      <td>Stack name of <a href="https://www.npmjs.com/package/@cfn-modules/efs-file-system">efs-file-system module</a></td>
+      <td>Stack name of <a href="https://www.npmjs.com/package/@cfn-modules/efs-file-system">efs-file-system module</a> (update is not supported)</td>
       <td></td>
       <td>no</td>
       <td></td>
     </tr>
     <tr>
       <td>VolumeModule1</td>
-      <td>Stack name of <a href="https://www.npmjs.com/package/@cfn-modules/ebs-volume">ebs-volume</a></td>
+      <td>Stack name of <a href="https://www.npmjs.com/package/@cfn-modules/ebs-volume">ebs-volume</a> (update is not supported)</td>
       <td></td>
       <td>no</td>
       <td></td>
     </tr>
     <tr>
       <td>AmazonLinux2Version</td>
-      <td>Version of Amazon Linux 2</td>
+      <td>Version of Amazon Linux 2 (update requires replacement of root volume = data loss!)</td>
       <td>2.0.20180622.1</td>
       <td>no</td>
       <td>['2.0.20180622.1']</td>
@@ -229,4 +229,4 @@ Resources:
 * Highly available: EC2 instances only live in a single AZ by design
 * Scalable: EC2 instances capacity (CPU, RAM, network, ...) is limited by design
 * Secure: Root volume is not encrypted at-rest (not possible unless the AMI is encrypted)
-* Secure: Backups are not enabled
+* Secure: Root volume it not backed up

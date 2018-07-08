@@ -119,7 +119,7 @@ Resources:
     <tr>
       <td>Name</td>
       <td>The name for the EC2 instance</td>
-      <td>test</td>
+      <td>auto generated value</td>
       <td>no</td>
       <td></td>
     </tr>

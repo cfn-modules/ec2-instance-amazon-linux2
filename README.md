@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/cfn-modules/ec2-instance-amazon-linux2.svg?branch=master)](https://travis-ci.org/cfn-modules/ec2-instance-amazon-linux2)
+[![NPM version](https://img.shields.io/npm/v/@cfn-modules/ec2-instance-amazon-linux2.svg)](https://www.npmjs.com/package/@cfn-modules/ec2-instance-amazon-linux2)
+
 # cfn-modules: AWS EC2 instance (Amazon Linux 2)
 
 AWS EC2 instance based on Amazon Linux 2 with a fixed public IP address (Elastic IP), [auto recovery](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-recover.html), [alerting](https://www.npmjs.com/package/@cfn-modules/alerting), [IAM user SSH access](https://github.com/widdix/aws-ec2-ssh), following an mutable infrastructure approach (root volume is reused in case of auto recovery).

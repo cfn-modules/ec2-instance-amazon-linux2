@@ -20,7 +20,7 @@ npm i @cfn-modules/ec2-instance-amazon-linux2
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'cfn-modules example'
 Resources:
-  Function:
+  Instance:
     Type: 'AWS::CloudFormation::Stack'
     Properties:
       Parameters:
@@ -29,13 +29,13 @@ Resources:
         BastionModule: !GetAtt 'Bastion.Outputs.StackName' # optional
         HostedZoneModule: !GetAtt 'HostedZone.Outputs.StackName' # optional
         KeyName: '' # optional
-        IAMUserSSHAccess: false # optional
-        SystemsManagerAccess: true # optional
+        IAMUserSSHAccess: 'false' # optional
+        SystemsManagerAccess: 'true' # optional
         InstanceType: 't2.micro' # optional
         Name: 'test' # optional
         AZChar: 'A' # optional
         SubnetReach: 'Public' # optional
-        LogGroupRetentionInDays: 14 # optional
+        LogGroupRetentionInDays: '14' # optional
         SubDomainNameWithDot: 'test.' # optional
         UserData: '' # optional
         IngressTcpPort1: '' # optional

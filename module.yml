@@ -563,7 +563,7 @@ Outputs:
   ModuleId:
     Value: 'ec2-instance-amazon-linux2'
   ModuleVersion:
-    Value: '0.0.8'
+    Value: '1.0.0'
   StackName:
     Value: !Ref 'AWS::StackName'
   Id:

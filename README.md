@@ -222,7 +222,7 @@ Resources:
       <td>Version of Amazon Linux 2 (update requires replacement of root volume = data loss!)</td>
       <td>2.0.20180622.1</td>
       <td>no</td>
-      <td>['2.0.20180622.1']</td>
+      <td>['2.0.20181114', '2.0.20180622.1']</td>
     </tr>
   </tbody>
 </table>

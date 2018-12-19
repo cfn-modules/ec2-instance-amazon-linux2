@@ -75,4 +75,28 @@ test('file-system', async t => {
 
 // TODO test SSH access with IAM user (IAMUserSSHAccess := true)
 // TODO test SSH access with BastionModule
-// TODO test VolumeModule1
+
+test('volume', async t => {
+  const stackName = cfntest.stackName();
+  const keyName = cfntest.keyName();
+  try {
+    const key = await cfntest.createKey(keyName);
+    try {
+      t.log(await cfntest.createStack(`${__dirname}/volume.yml`, stackName, {
+        KeyName: keyName
+      }));
+      const outputs = await cfntest.getStackOutputs(stackName);
+      t.log(outputs);
+      t.log(await cfntest.probeSSH(`ec2-user@${outputs.PublicIpAddress}`, key, 'echo -n "test" > /mnt/volume1/test.txt'));
+      // TODO kill EC2 instance and wait for new instance to become available...
+      const stdout = await cfntest.probeSSH(`ec2-user@${outputs.PublicIpAddress}`, key, 'cat /mnt/volume1/test.txt');
+      t.log(stdout);
+      t.is(stdout, 'test');
+    } finally {
+      t.log(await cfntest.deleteStack(stackName));
+    }
+  } finally {
+    t.log(await cfntest.deleteKey(keyName));
+    t.pass();
+  }
+});

@@ -205,14 +205,14 @@ Resources:
     </tr>
     <tr>
       <td>FileSystemModule1</td>
-      <td>Stack name of <a href="https://www.npmjs.com/package/@cfn-modules/efs-file-system">efs-file-system module</a> (update is not supported)</td>
+      <td>Stack name of <a href="https://www.npmjs.com/package/@cfn-modules/efs-file-system">efs-file-system module</a> mounted to /mnt/efs1/ (update is not supported)</td>
       <td></td>
       <td>no</td>
       <td></td>
     </tr>
     <tr>
       <td>VolumeModule1</td>
-      <td>Stack name of <a href="https://www.npmjs.com/package/@cfn-modules/ebs-volume">ebs-volume</a> (update is not supported)</td>
+      <td>Stack name of <a href="https://www.npmjs.com/package/@cfn-modules/ebs-volume">ebs-volume</a> mounted to /mnt/volume1/ (update is not supported)</td>
       <td></td>
       <td>no</td>
       <td></td>

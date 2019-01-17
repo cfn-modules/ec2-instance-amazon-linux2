@@ -40,7 +40,7 @@ test('user-data-ingress', async t => {
     t.log(await cfntest.createStack(`${__dirname}/user-data-ingress.yml`, stackName, {}));
     const outputs = await cfntest.getStackOutputs(stackName);
     t.log(outputs);
-    const res = await axios.post(`http://${outputs.PublicIpAddress}`);
+    const res = await axios.get(`http://${outputs.PublicIpAddress}`);
     t.is(res.status, 200);
   } finally {
     t.log(await cfntest.deleteStack(stackName));

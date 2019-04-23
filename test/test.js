@@ -2,7 +2,7 @@ const test = require('ava');
 const cfntest = require('@cfn-modules/test');
 const axios = require('axios');
 
-test('defaults', async t => {
+test.serial('defaults', async t => {
   const stackName = cfntest.stackName();
   try {
     t.log(await cfntest.createStack(`${__dirname}/defaults.yml`, stackName, {}));
@@ -13,7 +13,7 @@ test('defaults', async t => {
   }
 });
 
-test('key-name', async t => {
+test.serial('key-name', async t => {
   const stackName = cfntest.stackName();
   const keyName = cfntest.keyName();
   try {
@@ -34,7 +34,7 @@ test('key-name', async t => {
   }
 });
 
-test('user-data-ingress', async t => {
+test.serial('user-data-ingress', async t => {
   const stackName = cfntest.stackName();
   try {
     t.log(await cfntest.createStack(`${__dirname}/user-data-ingress.yml`, stackName, {}));
@@ -48,7 +48,7 @@ test('user-data-ingress', async t => {
   }
 });
 
-test('file-system', async t => {
+test.serial('file-system', async t => {
   const stackName = cfntest.stackName();
   const keyName = cfntest.keyName();
   try {
@@ -76,7 +76,7 @@ test('file-system', async t => {
 // TODO test SSH access with IAM user (IAMUserSSHAccess := true)
 // TODO test SSH access with BastionModule
 
-test('volume', async t => {
+test.serial('volume', async t => {
   const stackName = cfntest.stackName();
   const keyName = cfntest.keyName();
   try {

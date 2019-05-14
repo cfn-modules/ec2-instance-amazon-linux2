@@ -50,6 +50,15 @@ Resources:
       TemplateURL: './node_modules/@cfn-modules/ec2-instance-amazon-linux2/module.yml'
 ```
 
+## Examples
+
+* [ec2-ssm](https://github.com/cfn-modules/docs/tree/master/examples/ec2-ssm)
+
+## Related modules
+
+* [asg-singleton-amazon-linux2](https://github.com/cfn-modules/asg-singleton-amazon-linux2)
+* [ec2-instance-amazon-linux](https://github.com/cfn-modules/ec2-instance-amazon-linux)
+
 ## Parameters
 
 <table>

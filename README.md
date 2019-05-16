@@ -256,4 +256,4 @@ Resources:
 
 ### Migrate to v2
 
-* If `SystemsManagerAccess` is set to `true`, we no longer attach the AWS managed policy `AmazonEC2RoleforSSM` for security reasons. Instead we only allow the SSM agent to communicate with the backend and we enable Session Manager. If you need more permissions, checkout our [SSM example](https://github.com/cfn-modules/docs/tree/master/examples/asg-singleton-ssm).
+* If `SystemsManagerAccess` is set to `true`, we no longer attach the AWS managed policy `AmazonEC2RoleforSSM` for security reasons. Instead we only allow the SSM agent to communicate with the backend and we enable Session Manager. If you need more permissions, checkout our [SSM example](https://github.com/cfn-modules/docs/tree/master/examples/ec2-ssm).

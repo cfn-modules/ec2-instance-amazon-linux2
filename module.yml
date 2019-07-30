@@ -603,8 +603,8 @@ Resources:
             /opt/aws/bin/cfn-signal -e 0 --region ${Region} --stack ${StackName} --resource Instance
         - Region: !Ref 'AWS::Region'
           StackName: !Ref 'AWS::StackName'
-          UserDataMountFileSystem1: !If [HasFileSystemModule1, !Join ['', ['yum install -y amazon-efs-utils && mkdir -p /mnt/efs1 && echo "', {'Fn::ImportValue': !Sub '${FileSystemModule1}-Id'}, ':/ /mnt/efs1 efs defaults,_netdev 0 0" >> /etc/fstab']], '']
-          UserDataMountVolume1: !If [HasVolumeModule1, 'while [ ! -b /dev/xvdh ]; do sleep 1; done; if [ "$(file -s /dev/xvdh)" == "/dev/xvdh: data" ]; then mkfs -t ext4 /dev/xvdh; fi && mkdir -p /mnt/volume1 && echo "/dev/xvdh /mnt/volume1 ext4 defaults,nofail 0 2" >> /etc/fstab', '']
+          UserDataMountFileSystem1: !If [HasFileSystemModule1, !Join ['', ['yum install -y amazon-efs-utils && mkdir -p /mnt/efs1 && echo "', {'Fn::ImportValue': !Sub '${FileSystemModule1}-Id'}, ':/ /mnt/efs1 efs tls,_netdev 0 0" >> /etc/fstab']], '']
+          UserDataMountVolume1: !If [HasVolumeModule1, 'while [ ! -b /dev/xvdh ]; do sleep 1; done; blkid /dev/xvdh || mkfs -t ext4 /dev/xvdh; mkdir -p /mnt/volume1; echo "/dev/xvdh /mnt/volume1 ext4 defaults,nofail 0 2" >> /etc/fstab', '']
           UserData: !Ref UserData
       Tags:
       - Key: Name
@@ -652,7 +652,7 @@ Outputs:
   ModuleId:
     Value: 'ec2-instance-amazon-linux2'
   ModuleVersion:
-    Value: '2.1.0'
+    Value: '2.2.0'
   StackName:
     Value: !Ref 'AWS::StackName'
   Id:

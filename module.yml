@@ -64,7 +64,7 @@ Parameters:
     Default: Public
     AllowedValues:
     - Public
-    # - Private TODO DependsOn: EIPAssociation does not work when reach is Private. Unfortunately, we can not use !If in DependsOn...
+    - Private
   LogGroupRetentionInDays:
     Description: 'Specifies the number of days you want to retain log events.'
     Type: Number
@@ -419,12 +419,18 @@ Resources:
       AllocationId: !GetAtt 'ElasticIP.AllocationId'
       NetworkInterfaceId: !Ref NetworkInterface
   Instance:
-    DependsOn: EIPAssociation # does not work when reach is Private. Unfortunately, we can not use !If in DependsOn...
     Type: 'AWS::EC2::Instance'
     Metadata:
       'AWS::CloudFormation::Init':
         configSets:
-          default: !If [HasIAMUserSSHAccess, [awslogs, ssh-access, config], [awslogs, config]]
+          default: !If [HasIAMUserSSHAccess, [dependsonhack, awslogs, ssh-access, config], [dependsonhack, awslogs, config]]
+        dependsonhack:
+          files:
+            '/opt/aws/dependsonhack.txt': # CloudFormation does not support using conditions in DependsOn, therfore we create the dependency to the EIP with a hack
+              content: !If [HasSubnetReachPublic, !Sub 'hack-${EIPAssociation}', 'hack']
+              mode: '000644'
+              owner: root
+              group: root
         awslogs:
           packages:
             yum:
@@ -652,7 +658,7 @@ Outputs:
   ModuleId:
     Value: 'ec2-instance-amazon-linux2'
   ModuleVersion:
-    Value: '2.2.0'
+    Value: '2.3.0'
   StackName:
     Value: !Ref 'AWS::StackName'
   Id:

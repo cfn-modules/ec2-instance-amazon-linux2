@@ -18,5 +18,5 @@ Resources:
         SubnetReach: Private
       TemplateURL: './node_modules/@cfn-modules/ec2-instance-amazon-linux2/module.yml'
 Outputs:
-  PublicIpAddress:
-    Value: !GetAtt 'Instance.Outputs.PublicIpAddress'
+  PrivateIpAddress:
+    Value: !GetAtt 'Instance.Outputs.PrivateIpAddress'

@@ -1,6 +1,6 @@
 {
   "name": "@cfn-modules/ec2-instance-amazon-linux2",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "AWS EC2 instance based on Amazon Linux 2 with a fixed public IP address (Elastic IP), auto recovery, alerting, IAM user SSH access, following an mutable infrastructure approach (root volume is reused in case of auto recovery).",
   "author": "Michael Wittig <michael@widdix.de>",
   "license": "Apache-2.0",

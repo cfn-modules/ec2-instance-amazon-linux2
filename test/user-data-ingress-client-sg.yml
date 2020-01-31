@@ -13,25 +13,40 @@ Resources:
         S3Endpoint: 'false' # speed up the example
         DynamoDBEndpoint: 'false' # speed up the example
         FlowLog: 'false' # speed up the example
-        NatGateways: 'false' # speed up the example
       TemplateURL: './node_modules/@cfn-modules/vpc/module.yml'
-  Volume:
+  ClientSg:
     Type: 'AWS::CloudFormation::Stack'
     Properties:
       Parameters:
         VpcModule: !GetAtt 'Vpc.Outputs.StackName'
-      TemplateURL: './node_modules/@cfn-modules/ebs-volume/module.yml'
-  Instance:
+      TemplateURL: './node_modules/@cfn-modules/client-sg/module.yml'
+  ServerInstance:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Parameters:
+        VpcModule: !GetAtt 'Vpc.Outputs.StackName'
+        SubnetReach: Private
+        UserData: |
+          yum install -y httpd
+          service httpd start
+          echo "cfn-modules" > /var/www/html/index.html
+        IngressTcpPort1: '80'
+        IngressTcpClientSgModule1: !GetAtt 'ClientSg.Outputs.StackName'
+        AmazonLinux2Version: '2.0.20181114'
+        InstanceType: 't3.nano'
+      TemplateURL: './node_modules/@cfn-modules/ec2-instance-amazon-linux2/module.yml'
+  ClientInstance:
     Type: 'AWS::CloudFormation::Stack'
     Properties:
       Parameters:
         VpcModule: !GetAtt 'Vpc.Outputs.StackName'
         KeyName: !Ref KeyName
-        VolumeModule1: !GetAtt 'Volume.Outputs.StackName'
-        UserData: 'chmod 777 /mnt/volume1'
         AmazonLinux2Version: '2.0.20181114'
         InstanceType: 't3.nano'
+        ClientSgModule1: !GetAtt 'ClientSg.Outputs.StackName'
       TemplateURL: './node_modules/@cfn-modules/ec2-instance-amazon-linux2/module.yml'
 Outputs:
-  PublicIpAddress:
-    Value: !GetAtt 'Instance.Outputs.PublicIpAddress'
+  ClientPublicIpAddress:
+    Value: !GetAtt 'ClientInstance.Outputs.PublicIpAddress'
+  ServerPrivateIpAddress:
+    Value: !GetAtt 'ServerInstance.Outputs.PrivateIpAddress'

@@ -275,7 +275,7 @@ Resources:
           'Fn::ImportValue': !Sub '${HostedZoneModule}-Name'
       ResourceRecords:
       - !Ref ElasticIP
-      TTL: '60'
+      TTL: 60
       Type: A
   RecordSetPrivateIpAddress:
     Condition: HasHostedZoneModuleAndSubnetReachPrivate
@@ -290,7 +290,7 @@ Resources:
           'Fn::ImportValue': !Sub '${HostedZoneModule}-Name'
       ResourceRecords:
       - !GetAtt 'Instance.PrivateIp'
-      TTL: '60'
+      TTL: 60
       Type: A
   LogGroup:
     Type: 'AWS::Logs::LogGroup'
